@@ -1,0 +1,345 @@
+# Employee Management GraphQL API - Test Queries
+
+# ===========================================
+# AUTHENTICATION
+# ===========================================
+
+# Login as admin
+mutation LoginAdmin {
+  login(username: "admin", password: "admin123") {
+    token
+    user {
+      id
+      username
+      email
+      role
+    }
+  }
+}
+
+# Register new user (admin only)
+mutation RegisterUser {
+  register(
+    username: "employee1"
+    email: "employee1@company.com"
+    password: "password123"
+    role: "employee"
+  ) {
+    token
+    user {
+      id
+      username
+      email
+      role
+    }
+  }
+}
+
+# ===========================================
+# EMPLOYEE QUERIES
+# ===========================================
+
+# Get employees with pagination
+query GetEmployees {
+  employees(
+    pagination: {
+      offset: 0
+      limit: 10
+      sortBy: "name"
+      sortOrder: "ASC"
+    }
+  ) {
+    employees {
+      id
+      name
+      age
+      class
+      subjects
+      attendance
+      createdAt
+      updatedAt
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    currentPage
+    totalPages
+  }
+}
+
+# Get employees with filters
+query GetFilteredEmployees {
+  employees(
+    filters: {
+      name: "John"
+      class: "Developer"
+      minAge: 25
+      maxAge: 40
+      minAttendance: 80.0
+      maxAttendance: 100.0
+    }
+    pagination: {
+      offset: 0
+      limit: 5
+      sortBy: "attendance"
+      sortOrder: "DESC"
+    }
+  ) {
+    employees {
+      id
+      name
+      age
+      class
+      subjects
+      attendance
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    currentPage
+    totalPages
+  }
+}
+
+# Get single employee
+query GetEmployee($id: ID!) {
+  employee(id: $id) {
+    id
+    name
+    age
+    class
+    subjects
+    attendance
+    userId
+    createdAt
+    updatedAt
+  }
+}
+
+# Get current user
+query GetMe {
+  me {
+    id
+    username
+    email
+    role
+  }
+}
+
+# ===========================================
+# ADMIN ONLY QUERIES
+# ===========================================
+
+# Get all employees (admin only)
+query GetAllEmployees {
+  allEmployees(
+    pagination: {
+      offset: 0
+      limit: 20
+      sortBy: "created_at"
+      sortOrder: "DESC"
+    }
+  ) {
+    employees {
+      id
+      name
+      age
+      class
+      subjects
+      attendance
+      createdAt
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    currentPage
+    totalPages
+  }
+}
+
+# Get employee statistics (admin only)
+query GetEmployeeStats {
+  employeeStats {
+    totalEmployees
+    averageAge
+    averageAttendance
+    classDistribution {
+      class
+      count
+    }
+  }
+}
+
+# ===========================================
+# EMPLOYEE MUTATIONS
+# ===========================================
+
+# Create employee (admin only)
+mutation CreateEmployee {
+  createEmployee(
+    input: {
+      name: "Alice Johnson"
+      age: 29
+      class: "UI/UX Designer"
+      subjects: ["Figma", "Sketch", "Adobe XD", "Prototyping"]
+      attendance: 94.5
+    }
+  ) {
+    success
+    message
+    employee {
+      id
+      name
+      age
+      class
+      subjects
+      attendance
+      createdAt
+    }
+  }
+}
+
+# Update employee (admin only)
+mutation UpdateEmployee($id: ID!) {
+  updateEmployee(
+    id: $id
+    input: {
+      name: "Alice Johnson Updated"
+      age: 30
+      class: "Senior UI/UX Designer"
+      subjects: ["Figma", "Sketch", "Adobe XD", "Prototyping", "User Research"]
+      attendance: 96.0
+    }
+  ) {
+    success
+    message
+    employee {
+      id
+      name
+      age
+      class
+      subjects
+      attendance
+      updatedAt
+    }
+  }
+}
+
+# Delete employee (admin only)
+mutation DeleteEmployee($id: ID!) {
+  deleteEmployee(id: $id) {
+    success
+    message
+  }
+}
+
+# Update my profile (employee self-update)
+mutation UpdateMyProfile {
+  updateMyProfile(
+    input: {
+      name: "My Updated Name"
+      age: 31
+      subjects: ["JavaScript", "React", "Node.js", "GraphQL"]
+    }
+  ) {
+    success
+    message
+    employee {
+      id
+      name
+      age
+      subjects
+      attendance
+    }
+  }
+}
+
+# ===========================================
+# COMPLEX QUERIES
+# ===========================================
+
+# Get employees with multiple filters and sorting
+query GetComplexEmployees {
+  employees(
+    filters: {
+      class: "Developer"
+      minAttendance: 85.0
+    }
+    pagination: {
+      offset: 0
+      limit: 15
+      sortBy: "attendance"
+      sortOrder: "DESC"
+    }
+  ) {
+    employees {
+      id
+      name
+      age
+      class
+      subjects
+      attendance
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    currentPage
+    totalPages
+  }
+}
+
+# Get paginated results with next page
+query GetNextPage {
+  employees(
+    pagination: {
+      offset: 10
+      limit: 10
+      sortBy: "name"
+      sortOrder: "ASC"
+    }
+  ) {
+    employees {
+      id
+      name
+      age
+      class
+      attendance
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    currentPage
+    totalPages
+  }
+}
+
+# ===========================================
+# ERROR TESTING
+# ===========================================
+
+# Test invalid login
+mutation InvalidLogin {
+  login(username: "nonexistent", password: "wrong") {
+    token
+    user {
+      id
+      username
+    }
+  }
+}
+
+# Test unauthorized access (should fail without admin token)
+query UnauthorizedAccess {
+  employeeStats {
+    totalEmployees
+    averageAge
+  }
+}
+
+# Test invalid employee ID
+query InvalidEmployee {
+  employee(id: "invalid-id") {
+    id
+    name
+  }
+} 
